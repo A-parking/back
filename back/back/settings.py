@@ -49,6 +49,7 @@ LOCAL_APPS = [
 ]
 INSTALLED_APPS = DJANGO_APPS + FRAMEWORK_APPS + LOCAL_APPS
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
