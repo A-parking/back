@@ -10,7 +10,7 @@ class BigParkAdmin(admin.ModelAdmin):
 
 @admin.register(Parking)
 class ParkingAdmin(admin.ModelAdmin):
-    list_display = ['id','number', 'address', 'cost', 'current_places',  ]
+    list_display = ['id','number', 'address', 'cost', 'current_places', 'busy_places' ]
 
 
 @admin.register(Parkomat)

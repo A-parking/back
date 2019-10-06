@@ -12,11 +12,15 @@ class BigParkingSerializer(serializers.ModelSerializer):
 
 
 class ParkingSerializer(serializers.ModelSerializer):
-    big_parking = BigParkingSerializer
+    big_parking = BigParkingSerializer(required=False)
+    # number = serializers.IntegerField(required=False)
+    # address = serializers.CharField(required=False)
+    # cost = serializers.FloatField(required=False)
+    # current_places = serializers.IntegerField(required=False)
 
     class Meta:
         model = Parking
-        fields = ['id', 'number', 'address', 'cost', 'current_places', 'big_parking', 'work_time', 'x0', 'y0', 'x1', 'y1', 'x2', 'y2', 'x3', 'y3' ]
+        fields = ['id', 'number', 'address', 'cost', 'current_places','busy_places', 'big_parking', 'work_time',  'x1', 'y1', 'x2', 'y2', 'x3', 'y3','x4', 'y4',]
 
 
 class ParkomatSerializer(serializers.ModelSerializer):
@@ -27,7 +31,7 @@ class ParkomatSerializer(serializers.ModelSerializer):
 
 
 class CarSerializer(serializers.ModelSerializer):
-    parking_place = ParkingSerializer
+    parking_place = ParkingSerializer(required=False)
 
     class Meta:
         model = Car
