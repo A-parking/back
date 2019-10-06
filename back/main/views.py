@@ -12,14 +12,18 @@ class SetCatInDb(APIView):
         locationX = request.data.get('x')
         locationY = request.data.get('y')
         num = request.data.get('state_number')
-        parking = Parking.objects.get(id=6)
-        if checkNum(num):
-            Car.objects.create(parking_place=parking, state_number=num)
-            parking.busy_places += 1
-            parking.save()
-            return Response(f'Car Detected', status=status.HTTP_200_OK)
-        else:
-            return Response(f'This state_number exist in DB')
+        if findParking(locationX, locationY):
+            myPark = findParking(locationX, locationY)
+            if checkNum(num):
+                Car.objects.create(parking_place=myPark, state_number=num)
+                myPark.busy_places += 1
+                myPark.save()
+                return Response(f'Car Detected', status=status.HTTP_200_OK)
+            else:
+                return Response(f'This state_number exist in DB')
+
+
+
 
     def get(self,request):
         cars = Car.objects.all()
@@ -85,32 +89,12 @@ class PlaceInfo(APIView):
             cnt = 0
             return Response(serializer.data)
 
-
-
-class PPP(APIView):
-    def get(self,request):
-        pass
-    def post(self, request):
-        x = request.data.pop('x')
-        y = request.data.pop('y')
-        if findParking(x, y) != False:
-            parking = findParking(x,y)
-
-        # if checkNum(num):
-        #     Car.objects.create(parking_place=parking, state_number=num)
-        #     parking.busy_places += 1
-        #     parking.save()
-        #     return Response(f'Car Detected', status=status.HTTP_200_OK)
-        # else:
-        #     return Response(f'This state_number exist in DB')
-
-
-
-        # if findParking(x, y):
-        #     print('///////////////////')
-        #     print(findParking(x, y))
-        # else:
-        #     print('nooooooooooooooooooooooooo')
+def carInfo(state_number):
+    cars = Car.objects.all()
+    for car in cars:
+        if(car.state_number == state_number):
+            return True
+    return False
 
 
 def findParking(x, y):
@@ -122,10 +106,10 @@ def findParking(x, y):
 
         myarg = 5 * 0.000012205128205
 
-        point1 = Point(43.238524, 76.944165 + myarg)
-        point2 = Point(43.238524 + myarg, 76.944165)
-        point3 = Point(43.238524, 76.944165 - myarg)
-        point4 = Point(43.238524 - myarg, 76.944165)
+        point1 = Point(x, y + myarg)
+        point2 = Point(x + myarg, y)
+        point3 = Point(x, y - myarg)
+        point4 = Point(x - myarg, y)
 
         if polygon.contains(point1) == True:
             return parking
@@ -136,7 +120,7 @@ def findParking(x, y):
         if polygon.contains(point4) == True:
             return parking
         return False
-
-
+#
+#
 
 
