@@ -5,21 +5,32 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
+
 
 class SetCatInDb(APIView):
 
     def post(self, request):
         locationX = request.data.get('x')
         locationY = request.data.get('y')
+
+        # print(str(locationX) + " + " + str(locationY))
         num = request.data.get('state_number')
-        parking = Parking.objects.get(id=6)
-        if checkNum(num):
-            Car.objects.create(parking_place=parking, state_number=num)
-            parking.busy_places += 1
-            parking.save()
-            return Response(f'Car Detected', status=status.HTTP_200_OK)
+        if findParking(locationX, locationY):
+            myPark = findParking(locationX, locationY)
+            if checkNum(num):
+                Car.objects.create(parking_place=myPark, state_number=num)
+                myPark.busy_places += 1
+                myPark.save()
+                return Response(f'Car Detected', status=status.HTTP_200_OK)
+            else:
+                return Response(f'This state_number exist in DB')
         else:
-            return Response(f'This state_number exist in DB')
+            return Response('could not find!')
+
+
+        
 
     def get(self,request):
         cars = Car.objects.all()
@@ -56,14 +67,32 @@ class getAParkomat(APIView):
 
 
 class sendCarInfo(APIView):
-    def get(self, request):
+    def post(self, request):
+        print(request.data)
         num = request.data.pop('state_number')
         car = Car.objects.get(state_number=num)
-        serializer = CarSerializer(car)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if car:
+            serializer = CarSerializer(car)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(f'Car with {num} does not exist!!!')
 
-    def delete(self,request):
-        pk = request.data.pop('id')
+
+    # def delete(self,request):
+    #     print(request.data)
+    #     pk = request.data.pop('ida')
+    #     car = Car.objects.get(id=pk)
+    #     park = Parking.objects.get(id=car.parking_place.id)
+    #     park.busy_places -= 1
+    #     park.save()
+    #     car.delete()
+    #     return Response(f'Car deleted!!', status=status.HTTP_202_ACCEPTED)
+
+
+class DeleteCarInfo(APIView):
+    def post(self, request):
+        print(request.data)
+        pk = request.data.pop('ida')
         car = Car.objects.get(id=pk)
         park = Parking.objects.get(id=car.parking_place.id)
         park.busy_places -= 1
@@ -85,58 +114,48 @@ class PlaceInfo(APIView):
             cnt = 0
             return Response(serializer.data)
 
-
-
-class PPP(APIView):
-    def get(self,request):
-        pass
-    def post(self, request):
-        x = request.data.pop('x')
-        y = request.data.pop('y')
-        if findParking(x, y) != False:
-            parking = findParking(x,y)
-
-        # if checkNum(num):
-        #     Car.objects.create(parking_place=parking, state_number=num)
-        #     parking.busy_places += 1
-        #     parking.save()
-        #     return Response(f'Car Detected', status=status.HTTP_200_OK)
-        # else:
-        #     return Response(f'This state_number exist in DB')
-
-
-
-        # if findParking(x, y):
-        #     print('///////////////////')
-        #     print(findParking(x, y))
-        # else:
-        #     print('nooooooooooooooooooooooooo')
+def carInfo(state_number):
+    cars = Car.objects.all()
+    for car in cars:
+        if(car.state_number == state_number):
+            return True
+    return False
 
 
 def findParking(x, y):
     # 0.000012205128205 - 1 metr
     parkings = Parking.objects.all()
+
+    # print(parkings)
+
     point = Point(x,y)
     for parking in parkings:
-        polygon = Polygon([(parking.x1, parking.y1), (parking.x2, parking.y2), (parking.x3, parking.y3), (parking.x3, parking.y3)])
+        polygon = Polygon([(parking.x1, parking.y1), (parking.x2, parking.y2), (parking.x3, parking.y3), (parking.x4,
+                                                                                                          parking.y4)])
 
         myarg = 5 * 0.000012205128205
 
-        point1 = Point(43.238524, 76.944165 + myarg)
-        point2 = Point(43.238524 + myarg, 76.944165)
-        point3 = Point(43.238524, 76.944165 - myarg)
-        point4 = Point(43.238524 - myarg, 76.944165)
+        point1 = Point(x, y + myarg)
+        point2 = Point(x + myarg, y)
+        point3 = Point(x, y - myarg)
+        point4 = Point(x - myarg, y)
 
-        if polygon.contains(point1) == True:
-            return parking
-        if polygon.contains(point2) == True:
-            return parking
-        if polygon.contains(point3) == True:
-            return parking
-        if polygon.contains(point4) == True:
-            return parking
-        return False
+        print(str(x) + " + " + str(y+myarg))
+        print(str(x+myarg) + " + " + str(y))
+        print(str(x-myarg) + " + " + str(y))
+        print(str(x) + " + " + str(y-myarg))
 
+        if polygon.contains(point1):
+            return parking
+        if polygon.contains(point2):
+            return parking
+        if polygon.contains(point3):
+            return parking
+        if polygon.contains(point4):
+            return parking
 
+    return False
+#
+#
 
 

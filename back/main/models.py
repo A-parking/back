@@ -48,7 +48,7 @@ class Parkomat(models.Model):
 
 
 class Car(models.Model):
-    time_count = models.TimeField(auto_now_add=True)
+    time_count = models.DateTimeField(auto_now_add=True)
     state_number = models.CharField(max_length=255)
     parking_place = models.ForeignKey(Parking, on_delete=models.CASCADE, related_name='parking_place')
 
